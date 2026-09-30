@@ -34,13 +34,12 @@ import com.wayhome.domain.model.PeerConnectionState
 import com.wayhome.domain.model.RideGroup
 import com.wayhome.domain.repository.ChatRepository
 import com.wayhome.domain.repository.DiscoveryRepository
+import com.wayhome.presentation.designsystem.CardShape
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
-import com.wayhome.presentation.designsystem.components.Eyebrow
+import com.wayhome.presentation.designsystem.components.ScreenHeader
 import com.wayhome.presentation.designsystem.components.AvatarRing
 import com.wayhome.presentation.designsystem.components.EmptyState
-import com.wayhome.presentation.designsystem.components.StatusIndicator
-import com.wayhome.presentation.designsystem.components.StatusTone
 import com.wayhome.presentation.designsystem.components.TravellerAvatar
 import com.wayhome.presentation.designsystem.components.WayHomeCard
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -117,18 +116,11 @@ fun ChatsScreen(
         verticalArrangement = Arrangement.spacedBy(Space.md)
     ) {
         item {
-            Column {
-                Eyebrow("Conversations", color = c.accent)
-                Spacer(Modifier.height(Space.sm))
-                Text("Chats", style = MaterialTheme.typography.displayMedium, color = c.onSurface)
-                Spacer(Modifier.height(Space.xs))
-                Text(
-                    "Only this trip. Nothing is kept after you stop sharing.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = c.onSurfaceVariant
-                )
-                Spacer(Modifier.height(Space.md))
-            }
+            ScreenHeader(
+                eyebrow = "Conversations",
+                title = "Chats",
+                subtitle = "Only this trip. Nothing is kept after you stop sharing."
+            )
         }
 
         if (rows.isEmpty()) {
@@ -157,12 +149,14 @@ fun ChatsScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (row.kind == ConversationRow.Kind.Direct) {
-                        TravellerAvatar(row.tempId, size = 44.dp, ring = AvatarRing.Connected)
+                        Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
+                            TravellerAvatar(row.tempId, size = 40.dp, ring = AvatarRing.Connected)
+                        }
                     } else {
                         Box(
                             Modifier
                                 .size(44.dp)
-                                .clip(RoundedCornerShape(14.dp))
+                                .clip(CardShape)
                                 .background(c.accentSoft),
                             contentAlignment = Alignment.Center
                         ) {
@@ -185,9 +179,6 @@ fun ChatsScreen(
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }
-                    if (row.kind == ConversationRow.Kind.Direct) {
-                        StatusIndicator("", StatusTone.Good)
                     }
                 }
             }

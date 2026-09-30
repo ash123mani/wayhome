@@ -9,8 +9,12 @@ on your road route and shows a `Going your way` badge (see
 [`docs/route-matching.md`](docs/route-matching.md)).
 
 - No login, no signup, no email/phone. Temporary session identity (`Traveller ###`).
-- Only `City · Area` is ever shared. No exact address, live location, or contact details.
-- WayHome does **not** book cabs, handle payments, or run a backend in the MVP.
+- Only `City · Area` is ever shared **with other travellers**. No exact address, live
+  location, or contact details. (The optional online route check sends coarse seeded
+  coordinates to the configured OSRM host — no ID, name, or GPS; see
+  [`docs/PRIVACY_SAFETY.md`](docs/PRIVACY_SAFETY.md).)
+- WayHome does **not** book cabs, handle payments, or run a WayHome backend in the MVP.
+  The only server it ever talks to is a self-hosted OSRM routing instance you configure.
 
 ## Quickstart (5 minutes)
 
@@ -25,9 +29,10 @@ cd studio/wayhome
 
 Install on **two** Bluetooth+WiFi-capable devices and run the 2-device test:
 
-1. Both: open WayHome → Get Started → pick City/Area → **Find people going my way**
+1. Both: open WayHome → **Continue as Traveller ###** → pick City/Area → **Find my way**
    (grant Nearby/Bluetooth permissions when asked; turn BT + WiFi **on** manually).
-2. Each device should list the other as `Traveller ### · City · Area` → **Connect** → **Chat**.
+2. Each device should list the other as `Traveller ### · City · Area` → **Say hello** →
+   **Open chat**.
    (With internet on, route-verified peers rank first with a `Going your way` badge;
    offline you get the basic `Same destination` / `Nearby destination` badges.)
 3. Send messages both ways (works with mobile data / WiFi **off**).
@@ -39,7 +44,7 @@ Full walkthrough, emulator demo, and troubleshooting: [`docs/HOW_TO_RUN.md`](doc
 
 | Doc | Contents |
 |---|---|
-| `ARCHITECTURE.md` | Module layout, contracts, offline data flow, platform limitations, verify steps |
+| `ARCHITECTURE.md` | Module layout, contracts, offline data flow, design system, platform limitations, verify steps |
 | `FUTURE_SCOPE.md` | Phased post-MVP roadmap (backend, mesh, background — route matching §1 is now shipped) |
 | `docs/route-matching.md` | OSRM route verification: pipeline, thresholds, failure model, self-hosting |
 | `docs/HOW_TO_RUN.md` | Build, install, 2-device test script, emulator demo, troubleshooting |

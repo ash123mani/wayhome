@@ -37,8 +37,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.auroraWash
 import com.wayhome.presentation.designsystem.components.Eyebrow
 import com.wayhome.presentation.designsystem.components.RouteTicket
+import com.wayhome.presentation.designsystem.components.ScreenHeader
+import com.wayhome.presentation.designsystem.components.StatusPill
+import com.wayhome.presentation.designsystem.components.StatusTone
 import com.wayhome.presentation.designsystem.components.TravellerAvatar
 import com.wayhome.presentation.designsystem.components.WayHomeButton
 import com.wayhome.presentation.designsystem.components.WayHomeButtonStyle
@@ -56,15 +60,17 @@ fun ProfileScreen(
     Column(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(c.skyTop, c.background)))
+            .background(c.auroraWash())
             .statusBarsPadding()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = Space.gutter)
     ) {
         Spacer(Modifier.height(Space.lg))
-        Eyebrow("Your pass", color = c.accent)
-        Spacer(Modifier.height(Space.sm))
-        Text("You", style = MaterialTheme.typography.displayMedium, color = c.onSurface)
+
+        ScreenHeader(
+            eyebrow = "Your pass",
+            title = "You"
+        )
         Spacer(Modifier.height(Space.lg))
 
         // Identity — intentional, not a placeholder
@@ -73,24 +79,26 @@ fun ProfileScreen(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     TravellerAvatar(tempId = profile?.tempId.orEmpty(), size = 64.dp)
                     Spacer(Modifier.width(Space.lg))
-                    Column {
+                    Column(Modifier.weight(1f)) {
                         Text(
                             profile?.tempId ?: "Traveller",
                             style = MaterialTheme.typography.headlineMedium,
                             color = c.onSurface
                         )
+                        Spacer(Modifier.height(Space.xxs))
                         Text(
                             "✈️ Traveling home",
                             style = MaterialTheme.typography.bodySmall,
                             color = c.onSurfaceVariant
                         )
                     }
+                    if (discoverable) {
+                        StatusPill(label = "Live", tone = StatusTone.Good)
+                    }
                 }
                 Spacer(Modifier.height(Space.lg))
-                Eyebrow("Temporary identity")
-                Spacer(Modifier.height(Space.xs))
                 Text(
-                    "Yours for this trip only. No name, number or photo is attached to it.",
+                    "Temporary identity — yours for this trip only. No name, number or photo is attached to it.",
                     style = MaterialTheme.typography.bodySmall,
                     color = c.onSurfaceVariant
                 )
@@ -153,7 +161,7 @@ fun ProfileScreen(
         // What others can see — reassuring, specific
         WayHomeCard(Modifier.fillMaxWidth(), container = c.surfaceMuted) {
             Column(Modifier.padding(Space.xl)) {
-                Text("What others can see", style = MaterialTheme.typography.titleLarge, color = c.onSurface)
+                Eyebrow("What others can see")
                 Spacer(Modifier.height(Space.md))
                 listOf(
                     "Your temporary name",
@@ -174,7 +182,7 @@ fun ProfileScreen(
                         Text(line, style = MaterialTheme.typography.bodyMedium, color = c.onSurface)
                     }
                 }
-                Spacer(Modifier.height(Space.md))
+                Spacer(Modifier.height(Space.sm))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Outlined.LocationOff,

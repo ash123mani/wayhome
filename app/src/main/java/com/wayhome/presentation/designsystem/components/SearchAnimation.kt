@@ -20,11 +20,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.aurora
 import kotlinx.coroutines.delay
 
 /**
@@ -37,7 +39,8 @@ fun SearchAnimation(
     found: Int,
     modifier: Modifier = Modifier,
     diameter: Dp = 220.dp,
-    active: Boolean = true
+    active: Boolean = true,
+    decorative: Boolean = false
 ) {
     val c = WayHome.colors
     val transition = rememberInfiniteTransition(label = "search")
@@ -64,25 +67,30 @@ fun SearchAnimation(
     Box(
         modifier
             .size(diameter)
-            .semantics {
-                contentDescription =
-                    if (found > 0) "Searching nearby, $found travellers found"
-                    else "Searching for nearby travellers"
-            },
+            .then(
+                if (decorative) Modifier.clearAndSetSemantics {}
+                else Modifier.semantics {
+                    contentDescription =
+                        if (found > 0) "Searching nearby, $found travellers found"
+                        else "Searching for nearby travellers"
+                }
+            ),
         contentAlignment = Alignment.Center
     ) {
         Canvas(Modifier.size(diameter)) {
             val radius = size.minDimension / 2f
             val center = Offset(size.width / 2f, size.height / 2f)
+            val ramp = c.aurora()
 
             if (active) {
                 rings.forEach { p ->
                     val r = radius * (0.32f + 0.66f * p)
                     drawCircle(
-                        color = c.accent.copy(alpha = (1f - p) * 0.42f),
+                        brush = ramp,
+                        alpha = (1f - p) * 0.40f,
                         radius = r,
                         center = center,
-                        style = Stroke(width = 1.5.dp.toPx())
+                        style = Stroke(width = 2.dp.toPx())
                     )
                 }
             }
@@ -95,14 +103,14 @@ fun SearchAnimation(
                     val angleRad = Math.toRadians((spin.value + i * (360.0 / dotCount)).toDouble())
                     val dx = center.x + (orbit * kotlin.math.cos(angleRad)).toFloat()
                     val dy = center.y + (orbit * kotlin.math.sin(angleRad)).toFloat()
-                    drawCircle(c.accent, dot, Offset(dx, dy))
-                    drawCircle(c.accent.copy(alpha = 0.18f), dot * 2.4f, Offset(dx, dy))
+                    drawCircle(c.sea, dot * 2.4f, Offset(dx, dy), alpha = 0.18f)
+                    drawCircle(brush = ramp, radius = dot, center = Offset(dx, dy))
                 }
             }
 
             // heart of the search
-            drawCircle(c.accent.copy(alpha = 0.10f), radius * 0.26f, center)
-            drawCircle(c.accent, radius * 0.085f, center)
+            drawCircle(brush = ramp, radius = radius * 0.28f, center, alpha = 0.12f)
+            drawCircle(brush = ramp, radius = radius * 0.085f, center)
         }
     }
 }

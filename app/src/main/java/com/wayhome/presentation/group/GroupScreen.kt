@@ -41,19 +41,21 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wayhome.domain.model.MatchLevel
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
-import com.wayhome.presentation.designsystem.components.Eyebrow
+import com.wayhome.presentation.designsystem.components.AvatarStack
+import com.wayhome.presentation.designsystem.components.ScreenHeader
 import com.wayhome.presentation.designsystem.components.ChatComposer
 import com.wayhome.presentation.designsystem.components.EmptyState
 import com.wayhome.presentation.designsystem.components.GroupHeader
 import com.wayhome.presentation.designsystem.components.GroupOfferCard
 import com.wayhome.presentation.designsystem.components.MessageBubble
 import com.wayhome.presentation.designsystem.components.QuickReplies
-import com.wayhome.presentation.designsystem.components.StatusIndicator
+import com.wayhome.presentation.designsystem.components.StatusPill
 import com.wayhome.presentation.designsystem.components.StatusTone
 import com.wayhome.presentation.designsystem.components.SystemNote
 import com.wayhome.presentation.designsystem.components.WayHomeButton
 import com.wayhome.presentation.designsystem.components.WayHomeButtonStyle
 import com.wayhome.presentation.designsystem.components.WayHomeCard
+import androidx.compose.ui.text.style.TextOverflow
 
 private val groupOpeners = listOf(
     "Where should we meet?",
@@ -90,17 +92,11 @@ fun GroupListScreen(
         verticalArrangement = Arrangement.spacedBy(Space.lg)
     ) {
         item {
-            Column {
-                Eyebrow("Share a cab", color = c.accent)
-                Spacer(Modifier.height(Space.sm))
-                Text("Ride groups", style = MaterialTheme.typography.displayMedium, color = c.onSurface)
-                Spacer(Modifier.height(Space.xs))
-                Text(
-                    "Temporary crews for one trip. Nothing is saved after you leave.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = c.onSurfaceVariant
-                )
-            }
+            ScreenHeader(
+                eyebrow = "Share a cab",
+                title = "Ride groups",
+                subtitle = "Temporary crews for one trip. Nothing is saved after you leave."
+            )
         }
 
         if (candidates.isNotEmpty()) {
@@ -125,16 +121,20 @@ fun GroupListScreen(
             WayHomeCard(Modifier.fillMaxWidth(), onClick = { onOpenGroup(g.groupId) }) {
                 Column(Modifier.padding(Space.xl)) {
                     Text(g.name, style = MaterialTheme.typography.titleLarge, color = c.onSurface)
-                    Spacer(Modifier.height(Space.xs))
-                    StatusIndicator(
+                    Spacer(Modifier.height(Space.md))
+                    StatusPill(
                         label = "${g.members.size} ${if (g.members.size == 1) "traveller" else "travellers"} · temporary",
                         tone = if (g.members.size > 1) StatusTone.Good else StatusTone.Quiet
                     )
                     Spacer(Modifier.height(Space.lg))
+                    AvatarStack(tempIds = g.members, size = 28.dp, max = 6)
+                    Spacer(Modifier.height(Space.lg))
                     Text(
                         g.members.joinToString(" · ") { if (it == myId) "You" else it },
                         style = MaterialTheme.typography.bodySmall,
-                        color = c.onSurfaceVariant
+                        color = c.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }

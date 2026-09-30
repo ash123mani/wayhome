@@ -12,8 +12,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,17 +28,16 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ExpandMore
+import androidx.compose.material.icons.outlined.LocationCity
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,16 +47,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.wayhome.presentation.designsystem.CardShape
+import com.wayhome.presentation.designsystem.ControlShape
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.aurora
+import com.wayhome.presentation.designsystem.WayHomeTravelType
+import com.wayhome.presentation.designsystem.auroraWash
 import com.wayhome.presentation.designsystem.components.DestinationChip
-import com.wayhome.presentation.designsystem.components.SearchAnimation
 import com.wayhome.presentation.designsystem.components.Eyebrow
+import com.wayhome.presentation.designsystem.components.JourneyRail
+import com.wayhome.presentation.designsystem.components.ScreenHeader
+import com.wayhome.presentation.designsystem.components.SearchAnimation
 import com.wayhome.presentation.designsystem.components.WayHomeButton
 import com.wayhome.presentation.designsystem.components.WayHomeButtonStyle
 import com.wayhome.presentation.designsystem.components.WayHomeCard
@@ -64,7 +71,8 @@ import kotlinx.coroutines.delay
 
 /**
  * Progressive disclosure: city first, then the area inside it, then a single
- * confirm step. No long forms, no permission asks before the value is set.
+ * confirm step. No long forms, no permission asks before the value is set, and
+ * the trip you're about to announce is previewed on a journey rail.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -92,7 +100,12 @@ fun DestinationScreen(
         }
     }
 
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(c.skyTop, c.background)))) {
+    val areas = cities.firstOrNull { it.name == city }?.areas.orEmpty()
+    val resolved = resolveLabel(city, area, customCity, customArea)
+    val bothPicked = city.isNotBlank() && area.isNotBlank() ||
+        (customCity.isNotBlank() && customArea.isNotBlank())
+
+    Box(Modifier.fillMaxSize().background(c.auroraWash())) {
         Column(
             Modifier
                 .fillMaxSize()
@@ -102,40 +115,39 @@ fun DestinationScreen(
                 .padding(horizontal = Space.gutter)
         ) {
             Spacer(Modifier.height(Space.md))
+
             if (onBack != null) {
-                TextButton(onClick = onBack, contentPadding = PaddingZero) {
+                Row(
+                    Modifier
+                        .clip(ControlShape)
+                        .clickable(onClick = onBack)
+                        .padding(horizontal = Space.md, vertical = Space.sm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Icon(
                         Icons.AutoMirrored.Outlined.ArrowBack,
                         contentDescription = "Back",
-                        tint = c.onSurfaceVariant
+                        tint = c.onSurfaceVariant,
+                        modifier = Modifier.size(18.dp)
                     )
                     Spacer(Modifier.width(Space.xs))
                     Text("Back", style = MaterialTheme.typography.labelLarge, color = c.onSurfaceVariant)
                 }
-            } else {
-                Spacer(Modifier.height(Space.xs))
             }
 
-            Eyebrow("Your route · Two quick steps", color = c.accent)
-            Spacer(Modifier.height(Space.md))
+            Spacer(Modifier.height(Space.sm))
 
-            Text(
-                "Where are you\nheading home?",
-                style = MaterialTheme.typography.displayMedium,
-                color = c.onSurface
-            )
-            Spacer(Modifier.height(Space.lg))
-            Text(
-                "Pick your city, then the part of it you're going to.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = c.onSurfaceVariant
+            ScreenHeader(
+                eyebrow = "Your route",
+                title = "Where are you\nheading home?",
+                subtitle = "Pick your city, then the part of it you're going to."
             )
 
             Spacer(Modifier.height(Space.section))
 
             // Step 1 — city
-            StepLabel(step = 1, label = "City")
-            Spacer(Modifier.height(Space.sm))
+            StepLabel(step = 1, label = "City", done = city.isNotBlank())
+            Spacer(Modifier.height(Space.md))
             Box {
                 WayHomeCard(
                     modifier = Modifier.fillMaxWidth(),
@@ -145,10 +157,17 @@ fun DestinationScreen(
                         Modifier.padding(horizontal = Space.xl, vertical = Space.lg),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Icon(
+                            Icons.Outlined.LocationCity,
+                            contentDescription = null,
+                            tint = c.accent,
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(Space.lg))
                         Text(
                             city.ifBlank { "Choose a city" },
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = c.onSurface,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = if (city.isBlank()) c.quiet else c.onSurface,
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -179,29 +198,36 @@ fun DestinationScreen(
 
             Spacer(Modifier.height(Space.section))
 
-            // Step 2 — area (only once a city is chosen)
-            StepLabel(step = 2, label = "Where in $city?")
+            // Step 2 — area (only meaningful once a city is chosen)
+            StepLabel(
+                step = 2,
+                label = if (city.isBlank()) "Where in your city?" else "Where in $city?",
+                done = area.isNotBlank()
+            )
             Spacer(Modifier.height(Space.md))
-            val areas = cities.firstOrNull { it.name == city }?.areas.orEmpty()
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Space.sm),
-                verticalArrangement = Arrangement.spacedBy(Space.sm)
-            ) {
-                areas.forEach { a ->
-                    DestinationChip(
-                        label = a.name,
-                        selected = a.name == area,
-                        onClick = { vm.selectedArea.value = a.name }
-                    )
+            if (areas.isEmpty()) {
+                Text(
+                    "Choose a city above to see its areas.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.quiet
+                )
+            } else {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(Space.sm),
+                    verticalArrangement = Arrangement.spacedBy(Space.sm)
+                ) {
+                    areas.forEach { a ->
+                        DestinationChip(
+                            label = a.name,
+                            selected = a.name == area,
+                            onClick = { vm.selectedArea.value = a.name }
+                        )
+                    }
                 }
             }
 
-            Spacer(Modifier.height(Space.md))
-            Text(
-                "Can't find your area? Add it below.",
-                style = MaterialTheme.typography.bodySmall,
-                color = c.quiet
-            )
+            Spacer(Modifier.height(Space.lg))
+            Eyebrow("Or add your own")
             Spacer(Modifier.height(Space.sm))
             Row(horizontalArrangement = Arrangement.spacedBy(Space.sm)) {
                 SmallTextField(
@@ -220,27 +246,49 @@ fun DestinationScreen(
 
             Spacer(Modifier.height(Space.section))
 
-            // Step 3 — confirm
-            WayHomeCard(Modifier.fillMaxWidth(), container = c.surfaceMuted) {
+            // The trip you're about to announce
+            WayHomeCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(Space.xl)) {
-                    Text("We'll find people going your way.", style = MaterialTheme.typography.titleLarge, color = c.onSurface)
-                    Spacer(Modifier.height(Space.sm))
+                    Eyebrow("You'll be announced as")
+                    Spacer(Modifier.height(Space.lg))
+                    JourneyRail(from = city.ifBlank { "—" }, to = area.ifBlank { "—" })
+                    Spacer(Modifier.height(Space.lg))
                     Text(
-                        "They'll see only ${resolveLabel(city, area, customCity, customArea)} and your temporary name. Never your exact location.",
-                        style = MaterialTheme.typography.bodyMedium,
+                        if (bothPicked) {
+                            "They'll see only $resolved and your temporary name. Never your exact location."
+                        } else {
+                            "Pick a city and an area to see what other travellers will see."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
                         color = c.onSurfaceVariant
                     )
                 }
             }
 
             Spacer(Modifier.height(Space.xl))
+            Spacer(Modifier.height(Space.section))
+        }
+
+        // Sticky CTA — always reachable, never scrolled away
+        Box(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        listOf(c.background.copy(alpha = 0f), c.background)
+                    )
+                )
+                .imePadding()
+                .navigationBarsPadding()
+                .padding(horizontal = Space.gutter, vertical = Space.lg)
+        ) {
             WayHomeButton(
                 text = "Find my way",
                 onClick = { scanning = true },
                 enabled = !searching,
                 modifier = Modifier.fillMaxWidth()
             )
-            Spacer(Modifier.height(Space.section))
         }
 
         // Scan overlay — replaces the form instead of dimming it
@@ -254,22 +302,24 @@ fun DestinationScreen(
     }
 }
 
-private val PaddingZero = androidx.compose.foundation.layout.PaddingValues(0.dp, 0.dp, 0.dp, 0.dp)
-
 @Composable
-private fun StepLabel(step: Int, label: String) {
+private fun StepLabel(step: Int, label: String, done: Boolean) {
     val c = WayHome.colors
     Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             Modifier
-                .size(22.dp)
+                .size(24.dp)
                 .clip(CircleShape)
-                .background(c.accent),
+                .background(if (done) c.go else c.accentSoft),
             contentAlignment = Alignment.Center
         ) {
-            Text("$step", style = MaterialTheme.typography.labelMedium, color = c.onAccent)
+            Text(
+                if (done) "✓" else "$step",
+                style = WayHomeTravelType.StubLabel,
+                color = if (done) c.onAccent else c.onAccentSoft
+            )
         }
-        Spacer(Modifier.width(Space.sm))
+        Spacer(Modifier.width(Space.md))
         Text(label, style = MaterialTheme.typography.titleMedium, color = c.onSurface)
     }
 }
@@ -282,7 +332,7 @@ private fun SmallTextField(
     modifier: Modifier = Modifier
 ) {
     val c = WayHome.colors
-    Box(modifier.height(48.dp)) {
+    Box(modifier.height(52.dp)) {
         androidx.compose.foundation.text.BasicTextField(
             value = value,
             onValueChange = onValueChange,
@@ -291,9 +341,9 @@ private fun SmallTextField(
             cursorBrush = androidx.compose.ui.graphics.SolidColor(c.accent),
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(14.dp))
+                .clip(ControlShape)
                 .background(c.surface)
-                .border(BorderStroke(1.dp, c.outline), RoundedCornerShape(14.dp))
+                .border(BorderStroke(1.dp, c.outline), ControlShape)
                 .padding(horizontal = Space.lg)
         )
         if (value.isEmpty()) {
@@ -325,13 +375,18 @@ private fun ScanOverlay() {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            SearchAnimation(found = 0, diameter = 260.dp)
+            Box(
+                Modifier.size(288.dp).clip(CircleShape).background(c.aurora(alpha = 0.10f)),
+                contentAlignment = Alignment.Center
+            ) {
+                SearchAnimation(found = 0, diameter = 260.dp)
+            }
             Spacer(Modifier.height(Space.section))
             Text(
                 "Finding people\ngoing your way…",
                 style = MaterialTheme.typography.headlineLarge,
                 color = c.onSurface,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(Space.md))
             Text(

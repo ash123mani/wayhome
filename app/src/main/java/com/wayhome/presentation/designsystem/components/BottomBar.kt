@@ -1,10 +1,12 @@
 package com.wayhome.presentation.designsystem.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -36,14 +38,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.aurora
 
 enum class WayHomeTab(val label: String, val icon: ImageVector) {
     Home("Home", Icons.Outlined.Home),
@@ -52,6 +56,10 @@ enum class WayHomeTab(val label: String, val icon: ImageVector) {
     You("You", Icons.Outlined.PersonOutline)
 }
 
+/**
+ * A floating rail rather than a full-width bar: the selected tab sits on the
+ * aurora ramp so "where am I" is answered by colour, not just by a label.
+ */
 @Composable
 fun WayHomeBottomBar(
     selected: WayHomeTab,
@@ -61,17 +69,23 @@ fun WayHomeBottomBar(
 ) {
     val c = WayHome.colors
     val haptics = LocalHapticFeedback.current
-    Column(
+    val shape = RoundedCornerShape(26.dp)
+
+    Box(
         modifier
             .fillMaxWidth()
-            .background(c.surface)
+            .background(c.background)
+            .padding(horizontal = Space.lg)
+            .padding(bottom = Space.md)
     ) {
-        Perforation(color = c.outline)
         Row(
             Modifier
                 .fillMaxWidth()
+                .clip(shape)
+                .background(c.surface)
+                .border(1.dp, c.outline, shape)
                 .navigationBarsPadding()
-                .padding(horizontal = Space.sm, vertical = Space.sm),
+                .padding(horizontal = Space.xs, vertical = Space.xs),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -103,25 +117,20 @@ private fun BottomBarItem(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        if (pressed) 0.92f else 1f,
-        spring(dampingRatio = androidx.compose.animation.core.Spring.DampingRatioMediumBouncy),
+        if (pressed) 0.9f else 1f,
+        spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "tabPress"
     )
     val tint by animateColorAsState(
-        if (selected) c.onAccent else c.onSurfaceVariant,
-        tween(220),
+        if (selected) c.onAccent else c.quiet,
+        tween(200),
         label = "tabTint"
     )
-    val indicator by animateColorAsState(
-        if (selected) c.accent else androidx.compose.ui.graphics.Color.Transparent,
-        tween(220),
-        label = "tabPill"
-    )
-    val content by animateFloatAsState(if (selected) 1f else 0f, tween(220), label = "tabContent")
+    val content by animateFloatAsState(if (selected) 1f else 0f, tween(200), label = "tabContent")
 
     Column(
         modifier
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(20.dp))
             .clickable(interactionSource = interaction, indication = null, onClick = onClick)
             .semantics { contentDescription = "${tab.label} tab${if (selected) ", selected" else ""}" }
             .padding(vertical = Space.sm),
@@ -130,9 +139,11 @@ private fun BottomBarItem(
         Box(contentAlignment = Alignment.Center) {
             Box(
                 Modifier
-                    .size(width = 46.dp, height = 30.dp)
-                    .clip(RoundedCornerShape(15.dp))
-                    .background(indicator)
+                    .size(width = 48.dp, height = 32.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .then(
+                        if (selected) Modifier.background(c.aurora()) else Modifier
+                    )
             )
             Icon(
                 tab.icon,
@@ -149,7 +160,7 @@ private fun BottomBarItem(
                         .padding(end = 6.dp)
                         .size(8.dp)
                         .clip(CircleShape)
-                        .background(c.go)
+                        .background(c.sea)
                 )
             }
         }

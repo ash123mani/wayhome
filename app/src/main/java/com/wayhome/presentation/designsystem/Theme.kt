@@ -2,24 +2,23 @@ package com.wayhome.presentation.designsystem
 
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-import androidx.compose.material3.ColorScheme
 
 private fun scheme(c: WayHomeColors): ColorScheme = lightColorScheme(
     primary = c.accent,
     onPrimary = c.onAccent,
     primaryContainer = c.accentSoft,
     onPrimaryContainer = c.onAccentSoft,
-    secondary = c.onSurfaceVariant,
-    onSecondary = c.surface,
+    secondary = c.dusk,
+    onSecondary = c.onAccent,
     background = c.background,
     onBackground = c.onSurface,
     surface = c.surface,
@@ -28,8 +27,8 @@ private fun scheme(c: WayHomeColors): ColorScheme = lightColorScheme(
     onSurfaceVariant = c.onSurfaceVariant,
     outline = c.outlineStrong,
     outlineVariant = c.outline,
-    error = c.hold,
-    onError = c.surface
+    error = c.sea,
+    onError = c.onAccent
 )
 
 private fun darkScheme(c: WayHomeColors): ColorScheme = darkColorScheme(
@@ -37,8 +36,8 @@ private fun darkScheme(c: WayHomeColors): ColorScheme = darkColorScheme(
     onPrimary = c.onAccent,
     primaryContainer = c.accentSoft,
     onPrimaryContainer = c.onAccentSoft,
-    secondary = c.onSurfaceVariant,
-    onSecondary = c.surface,
+    secondary = c.dusk,
+    onSecondary = c.onGlow,
     background = c.background,
     onBackground = c.onSurface,
     surface = c.surface,
@@ -47,8 +46,8 @@ private fun darkScheme(c: WayHomeColors): ColorScheme = darkColorScheme(
     onSurfaceVariant = c.onSurfaceVariant,
     outline = c.outlineStrong,
     outlineVariant = c.outline,
-    error = c.hold,
-    onError = c.surface
+    error = c.sea,
+    onError = c.onGlow
 )
 
 @Composable

@@ -28,7 +28,11 @@ import com.wayhome.domain.model.Peer
 import com.wayhome.domain.model.PeerConnectionState
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.WayHomeTravelType
+import com.wayhome.presentation.designsystem.components.Eyebrow
 import com.wayhome.presentation.designsystem.components.MatchPath
+import com.wayhome.presentation.designsystem.components.StatusPill
+import com.wayhome.presentation.designsystem.components.StatusTone
 import com.wayhome.presentation.designsystem.components.TravellerAvatar
 import com.wayhome.presentation.designsystem.components.WayHomeButton
 import com.wayhome.presentation.designsystem.components.WayHomeButtonStyle
@@ -88,12 +92,16 @@ fun ConnectionSheet(
                 )
                 Spacer(Modifier.width(Space.lg))
                 Column(Modifier.weight(1f)) {
-                    Text(peer.tempId, style = MaterialTheme.typography.headlineMedium, color = c.onSurface)
+                    Eyebrow(peer.tempId)
+                    Spacer(Modifier.height(Space.xxs))
                     Text(
                         peer.destination.label(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = c.onSurfaceVariant
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = c.onSurface
                     )
+                }
+                if (peer.lookingForPartners) {
+                    StatusPill(label = "Free to join", tone = StatusTone.Good)
                 }
             }
 

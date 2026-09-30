@@ -56,8 +56,9 @@ fun TravellerCard(
     val connected = peer.connectionState == PeerConnectionState.CONNECTED
     val connecting = peer.connectionState == PeerConnectionState.CONNECTING
 
+    // A route-verified peer earns the only aurora card in the list.
     val container by animateColorAsState(
-        if (connected) c.surface else c.surface,
+        if (routeVerified) c.accentSoft.copy(alpha = 0.35f) else c.surface,
         tween(300),
         label = "cardBg"
     )
@@ -89,26 +90,26 @@ fun TravellerCard(
                     )
                 }
                 if (peer.lookingForPartners) {
-                    StatusIndicator(label = "Free to join", tone = StatusTone.Good)
+                    StatusPill(label = "Free to join", tone = StatusTone.Good)
                 }
             }
 
-            Spacer(Modifier.height(Space.xl))
+            Spacer(Modifier.height(Space.lg))
             if (routeLabel != null) {
-                StatusIndicator(
+                StatusPill(
                     label = routeLabel,
                     tone = if (routeVerified) StatusTone.Good else StatusTone.Pending
                 )
-                Spacer(Modifier.height(Space.md))
+                Spacer(Modifier.height(Space.lg))
             }
             MatchPath(myArea = myArea, theirArea = peer.destination.area, level = level)
 
             if (distanceKm != null && level == MatchLevel.NEARBY_AREA) {
-                Spacer(Modifier.height(Space.xs))
-                Text(
-                    "About ${"%.1f".format(distanceKm)} km apart on the map",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = c.quiet
+                Spacer(Modifier.height(Space.md))
+                DepartureRow(
+                    label = "Distance apart",
+                    value = "About ${"%.1f".format(distanceKm)} km",
+                    tone = StatusTone.Quiet
                 )
             }
 
@@ -145,9 +146,9 @@ fun NearbyClusterCard(
     actionLabel: String = "See who's going your way"
 ) {
     val c = WayHome.colors
-    WayHomeCard(modifier.fillMaxWidth(), container = c.accentSoft, border = Color.Transparent) {
+    AuroraCard(modifier) {
         Column(Modifier.padding(Space.xl)) {
-            StatusIndicator(
+            DepartureRow(
                 label = "${tempIds.size} ${if (tempIds.size == 1) "person" else "people"} nearby",
                 tone = StatusTone.Good
             )
@@ -157,15 +158,16 @@ fun NearbyClusterCard(
             Text(
                 areas.distinct().take(3).joinToString(" · "),
                 style = MaterialTheme.typography.titleMedium,
-                color = c.onAccentSoft,
+                color = c.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+            Spacer(Modifier.height(Space.xxs))
             Text(
                 "Heading to ${areas.distinct().size} " +
                     "${if (areas.distinct().size == 1) "area" else "areas"} near you",
                 style = MaterialTheme.typography.bodySmall,
-                color = c.onAccentSoft
+                color = c.onSurfaceVariant
             )
             Spacer(Modifier.height(Space.lg))
             WayHomeButton(

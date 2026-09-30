@@ -14,7 +14,7 @@ privacy model, what data exists and where, and the safety controls — for the M
    exception is the optional OSRM route check (online only): it sends the already-shared
    coarse origin/destination coordinates to a routing server and nothing else — no temp
    ID, no names, no live location (see §2).
-4. **User-controlled visibility:** sharing is explicit (tap **Find people going my way**) and
+4. **User-controlled visibility:** sharing is explicit (tap **Find my way**) and
    revocable at any time (**Stop sharing**).
 
 ## 2. Data inventory (MVP)
@@ -40,7 +40,8 @@ privacy model, what data exists and where, and the safety controls — for the M
   plus `INTERNET` (used solely for the OSRM route check); no contacts, camera, mic, SMS,
   or precise-location prompts beyond what the transport needs.
 - **Foreground-only sharing:** nothing advertises while the app is closed (MVP has no
-  background service), so "sharing" always matches a visible app state + the `🟢/⚪` banner.
+  background service), so "sharing" always matches a visible app state + the Home status
+  card (`Nearby mode active` when online, `Offline nearby mode` when not).
 
 ## 4. Residual risks (honest)
 

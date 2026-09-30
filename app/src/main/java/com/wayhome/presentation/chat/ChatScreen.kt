@@ -42,9 +42,11 @@ import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
 import com.wayhome.presentation.designsystem.components.AvatarRing
 import com.wayhome.presentation.designsystem.components.ChatComposer
+import com.wayhome.presentation.designsystem.components.DepartureRow
 import com.wayhome.presentation.designsystem.components.EmptyState
 import com.wayhome.presentation.designsystem.components.MessageBubble
 import com.wayhome.presentation.designsystem.components.QuickReplies
+import com.wayhome.presentation.designsystem.components.StatusTone
 import com.wayhome.presentation.designsystem.components.TravellerAvatar
 import com.wayhome.presentation.designsystem.components.WayHomeButton
 import com.wayhome.presentation.designsystem.components.WayHomeButtonStyle
@@ -110,10 +112,10 @@ fun ChatScreen(
             Spacer(Modifier.width(Space.md))
             Column(Modifier.weight(1f)) {
                 Text(peerTempId, style = MaterialTheme.typography.titleMedium, color = c.onSurface)
-                Text(
-                    "Temporary chat · this trip only",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = c.onSurfaceVariant
+                Spacer(Modifier.height(1.dp))
+                DepartureRow(
+                    label = "Live direct link",
+                    tone = StatusTone.Good
                 )
             }
         }

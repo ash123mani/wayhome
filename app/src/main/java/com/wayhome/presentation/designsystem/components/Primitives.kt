@@ -25,12 +25,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,8 +39,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -51,8 +48,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.wayhome.domain.model.MatchLevel
+import com.wayhome.presentation.designsystem.CardShape
+import com.wayhome.presentation.designsystem.ControlShape
+import com.wayhome.presentation.designsystem.PillShape
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.WayHomeTravelType
+import com.wayhome.presentation.designsystem.aurora
+import com.wayhome.presentation.designsystem.auroraVeil
 import com.wayhome.presentation.designsystem.avatarColors
 
 /* ------------------------------------------------------------------ buttons */
@@ -73,18 +76,13 @@ fun WayHomeButton(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.975f else 1f,
+        targetValue = if (pressed) 0.97f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "press"
     )
     val haptics = LocalHapticFeedback.current
+    val shape = ControlShape
 
-    val bg = when (style) {
-        WayHomeButtonStyle.Primary -> c.accent
-        WayHomeButtonStyle.Tonal -> c.accentSoft
-        WayHomeButtonStyle.Outline -> Color.Transparent
-        WayHomeButtonStyle.Ghost -> Color.Transparent
-    }
     val fg = when (style) {
         WayHomeButtonStyle.Primary -> c.onAccent
         WayHomeButtonStyle.Tonal -> c.onAccentSoft
@@ -94,13 +92,20 @@ fun WayHomeButton(
 
     Row(
         modifier = modifier
-            .heightIn(min = 52.dp)                       // generous touch target
+            .heightIn(min = 54.dp)
             .scale(scale)
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (enabled) bg else c.surfaceMuted)
+            .clip(shape)
+            .then(
+                when {
+                    !enabled -> Modifier.background(c.surfaceMuted)
+                    style == WayHomeButtonStyle.Primary -> Modifier.background(c.aurora())
+                    style == WayHomeButtonStyle.Tonal -> Modifier.background(c.accentSoft)
+                    else -> Modifier
+                }
+            )
             .then(
                 if (style == WayHomeButtonStyle.Outline)
-                    Modifier.border(BorderStroke(1.dp, c.outlineStrong), RoundedCornerShape(16.dp))
+                    Modifier.border(BorderStroke(1.dp, c.outlineStrong), shape)
                 else Modifier
             )
             .clickable(
@@ -116,14 +121,20 @@ fun WayHomeButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (leadingIcon != null) {
-            Icon(leadingIcon, contentDescription = null, tint = if (enabled) fg else c.quiet,
-                modifier = Modifier.size(18.dp))
+            Icon(
+                leadingIcon,
+                contentDescription = null,
+                tint = if (enabled) fg else c.quiet,
+                modifier = Modifier.size(18.dp)
+            )
             Spacer(Modifier.width(Space.sm))
         }
         Text(
             text,
             style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) fg else c.quiet
+            color = if (enabled) fg else c.quiet,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -134,11 +145,12 @@ fun WayHomeButton(
 fun WayHomeCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    shape: Shape = RoundedCornerShape(22.dp),
+    shape: Shape = CardShape,
     container: Color = WayHome.colors.surface,
     border: Color = WayHome.colors.outline,
     content: @Composable () -> Unit
 ) {
+    val c = WayHome.colors
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -151,7 +163,10 @@ fun WayHomeCard(
             .scale(scale)
             .clip(shape)
             .background(container)
-            .border(BorderStroke(1.dp, border), shape)
+            .border(
+                BorderStroke(1.dp, Brush.verticalGradient(listOf(c.hairline, border))),
+                shape
+            )
             .then(if (onClick != null) Modifier.clickable(
                 interactionSource = interaction, indication = null, onClick = onClick
             ) else Modifier)
@@ -179,7 +194,7 @@ fun TravellerAvatar(
     val ringColor by animateColorAsState(
         when (ring) {
             AvatarRing.Connected -> c.go
-            AvatarRing.Searching -> c.accent
+            AvatarRing.Searching -> c.sea
             AvatarRing.Muted -> c.outlineStrong
             AvatarRing.None -> Color.Transparent
         },
@@ -219,8 +234,8 @@ fun TravellerAvatar(
         ) {
             Text(
                 initials,
-                style = MaterialTheme.typography.titleMedium,
-                color = if (WayHome.isDark) Color(0xFF2A1710) else Color.White
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White
             )
         }
     }
@@ -258,10 +273,21 @@ fun StatusIndicator(
         },
         label = "statusTone"
     )
-    Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        modifier.clearAndSetSemantics { },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Box(Modifier.size(7.dp).clip(CircleShape).background(color))
-        Spacer(Modifier.width(Space.sm))
-        Text(label, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+        if (label.isNotEmpty()) {
+            Spacer(Modifier.width(Space.sm))
+            Text(
+                label,
+                style = WayHomeTravelType.Ticket,
+                color = c.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
@@ -273,12 +299,13 @@ fun SectionHeader(
     modifier: Modifier = Modifier,
     trailing: (@Composable () -> Unit)? = null
 ) {
+    val c = WayHome.colors
     Row(
         modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(title, style = MaterialTheme.typography.titleLarge, color = WayHome.colors.onSurface)
+        Text(title, style = MaterialTheme.typography.titleLarge, color = c.onSurface)
         trailing?.invoke()
     }
 }
@@ -292,17 +319,18 @@ fun DestinationChip(
 ) {
     val c = WayHome.colors
     val haptics = LocalHapticFeedback.current
-    val bg by animateColorAsState(if (selected) c.accent else c.surface, tween(220), label = "chipBg")
-    val fg by animateColorAsState(if (selected) c.onAccent else c.onSurface, tween(220), label = "chipFg")
+    val bg by animateColorAsState(if (selected) c.accent else c.surface, tween(200), label = "chipBg")
+    val fg by animateColorAsState(
+        if (selected) c.onAccent else c.onSurface,
+        tween(200),
+        label = "chipFg"
+    )
     Box(
         modifier
             .heightIn(min = 44.dp)
-            .clip(RoundedCornerShape(14.dp))
+            .clip(PillShape)
             .background(bg)
-            .border(
-                BorderStroke(1.dp, if (selected) Color.Transparent else c.outline),
-                RoundedCornerShape(14.dp)
-            )
+            .border(BorderStroke(1.dp, if (selected) Color.Transparent else c.outline), PillShape)
             .clickable {
                 haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onClick()
@@ -334,7 +362,11 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            Modifier.size(64.dp).clip(CircleShape).background(c.surfaceMuted),
+            Modifier
+                .size(72.dp)
+                .clip(CircleShape)
+                .background(c.auroraVeil())
+                .border(1.dp, c.aurora(alpha = 0.3f), CircleShape),
             contentAlignment = Alignment.Center
         ) { Text(glyph, style = MaterialTheme.typography.headlineMedium) }
         Spacer(Modifier.height(Space.lg))
@@ -362,25 +394,35 @@ fun OfflineBanner(
 ) {
     val c = WayHome.colors
     val (title, subtitle, tone) = if (internetAvailable) {
-        Triple("Nearby mode active", "Finding travellers around you right now", c.sea)
+        Triple("Nearby mode active", "Finding travellers around you right now", c.go)
     } else {
         Triple("Offline nearby mode", "Still finds people nearby — no internet needed", c.hold)
     }
     Row(
         modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(CardShape)
             .background(c.surface)
-            .border(BorderStroke(1.dp, c.outline), RoundedCornerShape(16.dp))
+            .border(
+                BorderStroke(
+                    1.dp,
+                    Brush.verticalGradient(listOf(c.hairline, c.outline))
+                ),
+                CardShape
+            )
             .padding(horizontal = Space.lg, vertical = if (compact) Space.md else Space.lg),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(Modifier.size(8.dp).clip(CircleShape).background(tone))
+        LiveDot(tone, pulsing = true)
         Spacer(Modifier.width(Space.md))
-        Column {
+        Column(Modifier.weight(1f)) {
             Text(title, style = MaterialTheme.typography.titleSmall, color = c.onSurface)
             if (!compact) {
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = c.onSurfaceVariant)
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = c.onSurfaceVariant
+                )
             }
         }
     }
@@ -400,24 +442,14 @@ fun matchCopy(level: MatchLevel): MatchCopy = when (level) {
 
 @Composable
 fun MatchBadge(level: MatchLevel, modifier: Modifier = Modifier) {
-    val c = WayHome.colors
     val copy = matchCopy(level)
-    val (bg, fg) = when (copy.tone) {
-        StatusTone.Good -> c.goSoft to c.go
-        StatusTone.Pending -> c.holdSoft to c.hold
-        StatusTone.Quiet -> c.surfaceMuted to c.onSurfaceVariant
-    }
-    Box(
-        modifier
-            .clip(RoundedCornerShape(9.dp))
-            .background(bg)
-            .padding(horizontal = Space.sm, vertical = 5.dp)
-    ) {
-        Text(copy.label, style = MaterialTheme.typography.labelMedium, color = fg)
-    }
+    StatusPill(label = copy.label, tone = copy.tone, modifier = modifier)
 }
 
-/** "You → Whitefield ⇄ Traveller 281 → Marathahalli" made human. */
+/**
+ * "You → Whitefield / Traveller 281 → Marathahalli" on a shared journey rail,
+ * so the relationship between the two destinations is drawn, not described.
+ */
 @Composable
 fun MatchPath(
     myArea: String,
@@ -427,59 +459,39 @@ fun MatchPath(
 ) {
     val c = WayHome.colors
     val copy = matchCopy(level)
-    val connector by animateFloatAsState(
-        if (level == MatchLevel.SAME_AREA) 1f else 0.6f,
-        tween(500),
-        label = "connector"
-    )
-    Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Column(Modifier.weight(1f)) {
-            Text("You're going", style = MaterialTheme.typography.labelMedium, color = c.quiet)
+    val tone = when (copy.tone) {
+        StatusTone.Good -> c.go
+        StatusTone.Pending -> c.hold
+        StatusTone.Quiet -> c.outlineStrong
+    }
+
+    Column(modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(8.dp).clip(CircleShape).background(c.accent))
+            Spacer(Modifier.width(Space.md))
             Text(
                 myArea.ifBlank { "Your area" },
                 style = MaterialTheme.typography.titleSmall,
                 color = c.onSurface,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
         }
-        Spacer(Modifier.width(Space.md))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(
-                Modifier
-                    .width(52.dp)
-                    .height(1.dp)
-                    .background(c.outlineStrong)
-            )
-            Spacer(Modifier.height(Space.xs))
-            Text("▼", style = MaterialTheme.typography.labelSmall, color = c.outlineStrong)
-        }
-        Spacer(Modifier.width(Space.md))
-        Column(Modifier.weight(1f)) {
-            Text("They're going", style = MaterialTheme.typography.labelMedium, color = c.quiet)
+        JourneyRail(
+            from = "They're going",
+            to = theirArea.ifBlank { "Another area" },
+            active = level == MatchLevel.SAME_AREA
+        )
+        Spacer(Modifier.height(Space.xs))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(7.dp).clip(CircleShape).background(tone))
+            Spacer(Modifier.width(Space.sm))
             Text(
-                theirArea.ifBlank { "Another area" },
-                style = MaterialTheme.typography.titleSmall,
-                color = c.accent,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                copy.label,
+                style = MaterialTheme.typography.labelMedium,
+                color = if (level == MatchLevel.SAME_AREA) c.go else c.onSurfaceVariant
             )
         }
-    }
-    Spacer(Modifier.height(Space.sm))
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Box(
-            Modifier
-                .size(6.dp)
-                .clip(CircleShape)
-                .alpha(connector)
-                .background(if (level == MatchLevel.SAME_AREA) c.go else c.hold)
-        )
-        Spacer(Modifier.width(Space.sm))
-        Text(
-            copy.label,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (level == MatchLevel.SAME_AREA) c.go else c.onSurfaceVariant
-        )
     }
 }

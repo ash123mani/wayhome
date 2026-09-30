@@ -32,6 +32,15 @@ Endpoint discovery itself carries no payload: the Nearby endpoint *name* is
 `tempId|city|area` (≤100 chars). Full profile (`lat/lng/looking`) is exchanged as an
 `Advertise` message immediately after connection acceptance.
 
+### What is *not* on the wire
+
+The route-matching feature (`docs/route-matching.md`) is **local-only** and never touches this
+protocol. No route geometry, distance, detour, duration, or `RouteMatchStatus` is sent to any
+peer, and no new `Message` subtype was added for it. Each device runs its own OSRM check
+against its own already-broadcast destination, so a `Going your way` badge is a **local
+opinion**, not a claim agreed with the other traveller. OSRM requests go over ordinary HTTPS
+and carry only coordinates — never a `tempId`, name, or phone number.
+
 ## 3. Flood / dedup rules (bitchat-style, MVP)
 
 Implemented in `ChatRepositoryImpl.handleIncoming` + `forward()`:

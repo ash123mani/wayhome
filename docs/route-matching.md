@@ -40,6 +40,29 @@ nearest route point) so the rule can be refined later.
 
 All thresholds live in `RouteMatchConfig` (`domain/routing/RouteModels.kt`).
 
+## What the user sees
+
+A route verdict only ever changes the **badge and the ranking**, never the discovery
+list itself. Peers keep their basic geographic badge (`Same destination` /
+`Nearby destination` / `Same city` / `Nearby, different way`) and additionally show:
+
+| Verdict | Badge |
+|---|---|
+| `MATCH`, detour < 1.5 km | green `Going your way` |
+| `MATCH`, detour ≥ 1.5 km | green `Going your way · ~N km detour` (N = rounded km) |
+| `NOT_A_MATCH` / `UNAVAILABLE` | no route badge; basic geographic copy only |
+
+Route-verified peers are sorted to the top of Home (then by smallest detour), so the
+resulting list is `Going your way · N` on the Home summary chip.
+
+The check is debounced ~800 ms, cancelled when the peer set changes, and re-runs
+automatically when connectivity returns — there is no retry button. Raw route metrics
+(distance-from-route, overshoot, OSRM duration) are intentionally **not** surfaced; they
+are debug/telemetry-only.
+
+A badge is a **local opinion**, not a mutual handshake: each device evaluates the peer
+against its own destination, and no route data is ever exchanged over Nearby.
+
 ## Failure model
 
 Routing failures are **not** mismatches:
@@ -74,4 +97,18 @@ Airport). Cities without an origin return null → route matching stays
 
 Only approximate destination areas already exchanged over Nearby are sent to
 OSRM. No names, phone numbers, or live locations. Offline discovery works
-with zero network; route badges simply don't appear.
+with zero network; route badges simply don't appear. The public demo server sees
+request IPs — self-host before any pilot.
+
+## Verification status
+
+- 32 route unit tests (`GeoUtilsTest` 12, `RouteMatcherTest` 14,
+  `FindRouteMatchesUseCaseTest` 6) plus 4 pre-existing matcher tests = **36 total,
+  0 failures** via `./gradlew testDebugUnitTest assembleDebug`.
+- Live contract check against the default public server: `code: Ok`, Bengaluru Airport
+  → Whitefield = 19,263.5 m, `LineString` with 486 points, first coordinate
+  `[77.6163, 12.9941]` (confirming `longitude,latitude` ordering).
+- **Not yet verified end-to-end:** a real two-device session where a peer earns
+  `Going your way`, since the emulator cannot produce nearby peers. Until that runs,
+  treat the UI integration as untested in the field — the domain logic is unit-covered.
+

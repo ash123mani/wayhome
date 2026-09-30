@@ -29,10 +29,10 @@ signup forms. Explicitly **not** users: drivers, fleet operators, advertisers (n
 ## 4. Core user journey (MVP)
 
 ```
-Welcome → pick City · Area → [Find people going my way]
+Welcome → pick City · Area → [Find my way]
   → Nearby list (route-verified first with `Going your way`, then
   `Same destination` / `Nearby destination` / `Same city` badges)
-  → Connect → 1:1 chat (“near ITPL?” / “near Hoodi?”)
+  → Say hello → 1:1 chat (“near ITPL?” / “near Hoodi?”)
   → Create group → agree pickup point + headcount
   → Stop sharing → book own cab → trip over, data stays on device
 ```
@@ -45,7 +45,7 @@ least one message each and reaching a cab decision. Everything else is secondary
 **In:** temp identity; destination select (seeded multi-city + custom); offline discovery;
 haversine match badges; OSRM route verification with `Going your way` badges (online-only,
 graceful offline fallback — see `docs/route-matching.md`); 1:1 chat; group create/join/leave;
-block; stop-sharing; offline banner.
+block; stop-sharing; online/offline status card.
 **Out (explicit):** cab booking, payments/fare-splitting, accounts, ratings, ads, cloud backend,
 route optimisation (matching verifies shared roads; it never plans or re-plans trips),
 exact-location sharing. `FUTURE_SCOPE.md` phases these; none may silently
@@ -74,7 +74,7 @@ analytics only arrive with the `RemoteDataSource` phase and explicit consent.
 | Risk | Mitigation (MVP) |
 |---|---|
 | Stranger danger / harassment | Temp IDs, no contact/location exposure, block, stop-sharing, leave-group; see `PRIVACY_SAFETY.md` |
-| Empty airport (no peers) | Honest `🔎 Searching` state; seeded demo content never fakes real people |
+| Empty airport (no peers) | Honest `Searching your area` state; seeded demo content never fakes real people |
 | Radio/permission friction | Pre-request rationale, manual radio checklist, exact per-API permission set |
 | Platform dependence (Play Services, radio policy) | Isolated in `nearby/`; tracked in `FUTURE_SCOPE.md` §10 |
 | Scope creep into ride-hailing | Hard boundary: WayHome ends at agreement; deep links only (P3) |

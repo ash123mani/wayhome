@@ -6,7 +6,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,15 +18,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.Tune
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,31 +31,33 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.wayhome.domain.model.MatchLevel
 import com.wayhome.domain.model.Peer
 import com.wayhome.domain.model.PeerConnectionState
+import com.wayhome.presentation.designsystem.CardShape
 import com.wayhome.presentation.designsystem.Space
 import com.wayhome.presentation.designsystem.WayHome
+import com.wayhome.presentation.designsystem.aurora
+import com.wayhome.presentation.designsystem.WayHomeTravelType
+import com.wayhome.presentation.designsystem.auroraWash
+import com.wayhome.presentation.designsystem.components.DepartureRow
 import com.wayhome.presentation.designsystem.components.EmptyState
 import com.wayhome.presentation.designsystem.components.Eyebrow
 import com.wayhome.presentation.designsystem.components.NearbyClusterCard
 import com.wayhome.presentation.designsystem.components.OfflineBanner
 import com.wayhome.presentation.designsystem.components.RouteTicket
+import com.wayhome.presentation.designsystem.components.ScreenHeader
 import com.wayhome.presentation.designsystem.components.SearchAnimation
 import com.wayhome.presentation.designsystem.components.SectionHeader
-import com.wayhome.presentation.designsystem.components.StatusIndicator
+import com.wayhome.presentation.designsystem.components.StatTile
 import com.wayhome.presentation.designsystem.components.StatusTone
 import com.wayhome.presentation.designsystem.components.TravellerCard
 import com.wayhome.presentation.designsystem.components.WayHomeButton
 import com.wayhome.presentation.designsystem.components.WayHomeButtonStyle
+import com.wayhome.presentation.designsystem.components.WayHomeCard
 import com.wayhome.presentation.designsystem.components.appearIn
 import java.util.Calendar
 
@@ -110,7 +105,7 @@ fun DiscoveryScreen(
         state = listState,
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(c.skyTop, c.background)))
+            .background(c.auroraWash())
             .statusBarsPadding(),
         contentPadding = PaddingValues(
             start = Space.gutter, end = Space.gutter,
@@ -119,26 +114,34 @@ fun DiscoveryScreen(
         verticalArrangement = Arrangement.spacedBy(Space.lg)
     ) {
         item {
-            GreetingHeader(
-                tempId = profile?.tempId,
-                city = myCity,
-                area = myArea,
-                distanceKm = sameWay.firstOrNull()?.distanceKm ?: peers.firstOrNull()?.distanceKm,
-                caption = if (peers.isEmpty()) "Searching your area"
-                else "${sameWay.size} going your way",
-                onChangeDestination = onChangeDestination
-            )
+            Column {
+                ScreenHeader(
+                    eyebrow = greetingFor(profile?.tempId),
+                    title = "Where are you heading?"
+                )
+                Spacer(Modifier.height(Space.lg))
+                RouteTicket(
+                    city = myCity,
+                    area = myArea,
+                    distanceKm = sameWay.firstOrNull()?.distanceKm ?: peers.firstOrNull()?.distanceKm,
+                    caption = if (peers.isEmpty()) "Searching your area"
+                    else "${sameWay.size} going your way",
+                    onClick = onChangeDestination
+                )
+            }
         }
 
         item {
-            Column {
-                OfflineBanner(internetAvailable = vm.internetNow)
-                Spacer(Modifier.height(Space.sm))
-                Text(
-                    bannerText(peers.size, nearbyActive),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = c.quiet
-                )
+            WayHomeCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(Space.lg)) {
+                    OfflineBanner(internetAvailable = vm.internetNow)
+                    Spacer(Modifier.height(Space.md))
+                    DepartureRow(
+                        label = "Scan status",
+                        value = bannerText(peers.size, nearbyActive),
+                        tone = if (peers.isEmpty()) StatusTone.Pending else StatusTone.Good
+                    )
+                }
             }
         }
 
@@ -160,7 +163,11 @@ fun DiscoveryScreen(
                         "Going your way · ${sameWay.size}" else "Nearby travellers",
                     trailing = {
                         if (connectedCount > 0) {
-                            StatusIndicator("$connectedCount connected", StatusTone.Good)
+                            StatTile(
+                                value = connectedCount.toString(),
+                                label = "connected",
+                                tint = c.go
+                            )
                         }
                     }
                 )
@@ -210,14 +217,19 @@ fun DiscoveryScreen(
 @Composable
 private fun SearchingEmptyState(onKeepSearching: () -> Unit) {
     val c = WayHome.colors
-    WayHomeCardBox {
+    WayHomeCard(Modifier.fillMaxWidth()) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            SearchAnimation(found = 0, diameter = 190.dp)
+            Box(
+                Modifier.size(214.dp).background(c.aurora(alpha = 0.08f), CardShape),
+                contentAlignment = Alignment.Center
+            ) {
+                SearchAnimation(found = 0, diameter = 190.dp)
+            }
             EmptyState(
-                glyph = "✈",
                 title = "No travellers yet",
                 body = "You might be the first person looking for a ride this way. " +
                     "Keep searching — someone may appear soon.",
+                glyph = "",
                 action = {
                     WayHomeButton(
                         text = "Keep searching",
@@ -231,26 +243,7 @@ private fun SearchingEmptyState(onKeepSearching: () -> Unit) {
 }
 
 @Composable
-private fun WayHomeCardBox(content: @Composable () -> Unit) {
-    val c = WayHome.colors
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(c.surface),
-        contentAlignment = Alignment.Center
-    ) { content() }
-}
-
-@Composable
-private fun GreetingHeader(
-    tempId: String?,
-    city: String,
-    area: String,
-    distanceKm: Double?,
-    caption: String,
-    onChangeDestination: () -> Unit
-) {
+private fun greetingFor(tempId: String?): String {
     val hour = remember { Calendar.getInstance().get(Calendar.HOUR_OF_DAY) }
     val greeting = when (hour) {
         in 5..11 -> "Good morning"
@@ -258,23 +251,8 @@ private fun GreetingHeader(
         in 17..21 -> "Good evening"
         else -> "Hello"
     }
-    Column {
-        Eyebrow(if (tempId != null) "$greeting · $tempId" else greeting)
-        Spacer(Modifier.height(Space.sm))
-        Text(
-            "Where are you heading?",
-            style = MaterialTheme.typography.displayMedium,
-            color = WayHome.colors.onSurface
-        )
-        Spacer(Modifier.height(Space.lg))
-        RouteTicket(
-            city = city,
-            area = area,
-            distanceKm = distanceKm,
-            caption = caption,
-            onClick = onChangeDestination
-        )
-    }
+    val parts = if (tempId != null) "$greeting · $tempId" else greeting
+    return parts
 }
 
 private fun bannerText(count: Int, active: Boolean): String = when {
