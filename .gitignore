@@ -1,0 +1,28 @@
+# Gradle build outputs
+.gradle/
+build/
+**/build/
+out/
+
+# Local SDK path (machine-specific)
+local.properties
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Kotlin incremental compilation caches
+.kotlin/
+
+# Keystores — never commit signing keys
+*.jks
+*.keystore
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log

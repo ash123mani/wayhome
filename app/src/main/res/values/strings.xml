@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">WayHome</string>
+    <string name="connection_service_id">com.wayhome.NEARBY</string>
+</resources>

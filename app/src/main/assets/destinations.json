@@ -1,0 +1,33 @@
+{
+  "cities": [
+    {
+      "name": "Bengaluru",
+      "areas": [
+        { "name": "Whitefield", "lat": 12.9698, "lng": 77.7499 },
+        { "name": "Marathahalli", "lat": 12.9591, "lng": 77.6974 },
+        { "name": "Hoodi", "lat": 12.9899, "lng": 77.7116 },
+        { "name": "ITPL", "lat": 12.9828, "lng": 77.7603 },
+        { "name": "Electronic City", "lat": 12.8452, "lng": 77.6602 },
+        { "name": "Hebbal", "lat": 13.0358, "lng": 77.5970 }
+      ]
+    },
+    {
+      "name": "Delhi",
+      "areas": [
+        { "name": "Dwarka", "lat": 28.5921, "lng": 77.0460 },
+        { "name": "Rohini", "lat": 28.7400, "lng": 77.1130 },
+        { "name": "Saket", "lat": 28.5244, "lng": 77.2066 },
+        { "name": "Noida City Centre", "lat": 28.5746, "lng": 77.3568 }
+      ]
+    },
+    {
+      "name": "Mumbai",
+      "areas": [
+        { "name": "Andheri", "lat": 19.1136, "lng": 72.8697 },
+        { "name": "Bandra", "lat": 19.0596, "lng": 72.8295 },
+        { "name": "Powai", "lat": 19.1197, "lng": 72.9051 },
+        { "name": "Thane", "lat": 19.2183, "lng": 72.9781 }
+      ]
+    }
+  ]
+}
